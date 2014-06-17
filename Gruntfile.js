@@ -34,7 +34,7 @@ module.exports = function(grunt) {
         options: {
         },
         files: {
-          'tmp/default_options': ['test/fixtures/testing', 'test/fixtures/123']
+          'tmp/default_options': ['test/fixtures/**.sql']
         }
       },
       custom_options: {
@@ -69,5 +69,4 @@ module.exports = function(grunt) {
 
   // By default, lint and run all tests.
   grunt.registerTask('default', ['jshint', 'test']);
-
 };
