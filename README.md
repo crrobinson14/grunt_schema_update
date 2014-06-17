@@ -21,11 +21,13 @@ contents. For example, you might make a folder with the following files:
 These will be run in the order listed above. Because the versions are sorted numerically, if you ever "roll over" from
 999 to 1000, this module will still function as expected.
 
+Because this is a multiTask, you can register several entries and maintain multiple schemas from one tool!
+
 ## Getting Started
 This plugin requires Grunt `~0.4.5`
 
 If you haven't used [Grunt](http://gruntjs.com/) before, be sure to check out the
-[Getting Started](http://gruntjs.com/getting-started) guide, as it explains how to create a 
+[Getting Started](http://gruntjs.com/getting-started) guide, as it explains how to create a
 [Gruntfile](http://gruntjs.com/sample-gruntfile) as well as install and use Grunt plugins. Once you're familiar with
  that process, you may install this plugin with this command:
 
@@ -109,7 +111,7 @@ A query to execute to update the current database version number. The token `{ve
 version from the last successful file import. Note that the version will be updated after each successful schema
 update script import, so if five updates are executed but the fifth call fails, the version will be the version of the
 fourth (last successful) update. This helps prevent duplicate updates -- after a failed update, you can fix only the
-failing script and try again safely. 
+failing script and try again safely.
 
 #### options.queryVersionSafe
 Type: `Boolean`
@@ -123,6 +125,7 @@ empty databases from scratch.
 ### Usage Examples
 
 #### Default Options
+
 In this example, the default options are used to do something with whatever. So if the `testing` file has the content
 `Testing` and the `123` file had the content `1 2 3`, the generated result would be `Testing, 1 2 3.`
 
@@ -152,4 +155,5 @@ In lieu of a formal styleguide, take care to maintain the existing coding style.
  functionality. Lint and test your code using [Grunt](http://gruntjs.com/).
 
 ## Release History
-_(Nothing yet)_
+
+v0.1.0 - Initial release. I yam what I yam.
