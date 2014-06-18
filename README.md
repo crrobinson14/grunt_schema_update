@@ -94,6 +94,10 @@ One or more options to be passed to the database connection call. For example, f
     ...
 ```
 
+These options will be passed through as-is to the `createConnection()` (or similar) call, so you may include any
+options supported by the driver's module. For example, all of the node-mysql options are supported as described
+in the [node-mysql project on Github](http://gruntjs.com/).
+
 #### options.queryGetVersion
 Type: `String`
 Default value: `SELECT version FROM schema_version`

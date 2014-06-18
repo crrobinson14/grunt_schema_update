@@ -1,4 +1,4 @@
-/*
+/**
  * grunt-schema-update
  * https://github.com/crrobinson14/grunt_schema_update
  *
@@ -8,26 +8,67 @@
 
 'use strict';
 
+var path = require('path');
+
 module.exports = function(grunt) {
-  grunt.registerMultiTask('schema_update', 'Database schema update utility.', function() {
-    // Merge task-specific and/or target-specific options with these defaults.
-    var options = this.options({
-      driver: 'mysql',
-      connection: {
-        host: 'localhost',
-        user: '',
-        pass: ''
-      },
-      queryGetVersion: 'SELECT version FROM schema_version',
-      querySetVersion: 'REPLACE INTO schema_version (version) VALUES ({version})',
-      queryVersionSafe: true
-    });
+    function filesToProcess(src) {
+        var process = [];
 
-    var filesToProcess = [];
+        // For each file, get its version (we ignore files that don't start with numbers) and optional comment
+        src.map(function(entry) {
+            var base = path.basename(entry),
+                parts = base.match(/^([0-9]+)/gi);
 
-    // Iterate over all specified file groups.
-    this.files.forEach(function(f) {
-        console.log(f.src);
+            if (!parts || parts.length !== 1) {
+                return;
+            }
+
+            // See if the
+            console.log(entry, base, parts);
+        });
+
+        return process.sort(function(a, b) {
+            return a.version - b.version;
+        });
+    }
+
+    grunt.registerMultiTask('schema_update', 'Database schema update utility.', function() {
+        // Merge task-specific and/or target-specific options with these defaults.
+        var drivers = ['mysql'],
+            options = this.options({
+                driver: 'mysql',
+                connection: {
+                    host: 'localhost',
+                    user: '',
+                    pass: ''
+                },
+                queryGetVersion: 'SELECT version FROM schema_version',
+                querySetVersion: 'REPLACE INTO schema_version (version) VALUES ({version})',
+                queryVersionSafe: true
+            });
+
+        grunt.verbose.writeflags(options, 'Options');
+
+        if (drivers.indexOf(options.driver) === -1) {
+            grunt.log.error('Invalid driver. Supported values: ', grunt.log.wordlist(drivers));
+            return false;
+        }
+
+        var db = require('./lib/' + options.driver).init(grunt, options);
+        if (!db.connect()) {
+            return false;
+        }
+
+        grunt.log.subhead('test');
+        grunt.log.writeln('test');
+
+        grunt.log.ok();
+
+        var files = filesToProcess(this.filesSrc);
+
+        // Iterate over all specified file groups.
+//    this.files.forEach(function(f) {
+//        console.log(f.src);
 //      // Concat specified files.
 //      var src = f.src.filter(function(filepath) {
 //        // Warn on and remove invalid source files (if nonull was set).
@@ -50,7 +91,7 @@ module.exports = function(grunt) {
 //
 //      // Print a success message.
 //      grunt.log.writeln('File "' + f.dest + '" created.');
-    });
+//    });
 
 
 /*
@@ -60,7 +101,6 @@ module.exports = function(grunt) {
       var options = this.options({
                                  });
 
-      grunt.verbose.writeflags(options, 'Options');
       console.log(options );
 
       switch (options.driver) {
@@ -133,5 +173,7 @@ module.exports = function(grunt) {
       //                    }
       //                );
 */
-  });
+
+        return true;
+    });
 };
