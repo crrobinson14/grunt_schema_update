@@ -1,4 +1,4 @@
---- v001: Initialize the database
+-- Initialize the database
 
 -- Start from scratch here
 DROP DATABASE IF EXISTS gstest;

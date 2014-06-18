@@ -1,4 +1,4 @@
---- v003: Add a field to an existing table
+-- Add a field to an existing table.
 
 -- The user table holds basic information about each user of the system
 CREATE TABLE test (

@@ -1,4 +1,4 @@
---- v004: Test a failing update query
+-- Test a failing update query
 
 -- This query isn't legit, so it will throw an error. The table should already exist.
 CREATE TABLE test (

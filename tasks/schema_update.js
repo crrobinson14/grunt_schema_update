@@ -8,33 +8,12 @@
 
 'use strict';
 
-var path = require('path');
+var fileUtils = require('./lib/files');
 
 module.exports = function(grunt) {
-    function filesToProcess(src) {
-        var process = [];
-
-        // For each file, get its version (we ignore files that don't start with numbers) and optional comment
-        src.map(function(entry) {
-            var base = path.basename(entry),
-                parts = base.match(/^([0-9]+)/gi);
-
-            if (!parts || parts.length !== 1) {
-                return;
-            }
-
-            // See if the
-            console.log(entry, base, parts);
-        });
-
-        return process.sort(function(a, b) {
-            return a.version - b.version;
-        });
-    }
-
     grunt.registerMultiTask('schema_update', 'Database schema update utility.', function() {
         // Merge task-specific and/or target-specific options with these defaults.
-        var drivers = ['mysql'],
+        var drivers = ['simulation', 'mysql'],
             options = this.options({
                 driver: 'mysql',
                 connection: {
@@ -44,7 +23,8 @@ module.exports = function(grunt) {
                 },
                 queryGetVersion: 'SELECT version FROM schema_version',
                 querySetVersion: 'REPLACE INTO schema_version (version) VALUES ({version})',
-                queryVersionSafe: true
+                queryVersionSafe: true,
+                pretend: true
             });
 
         grunt.verbose.writeflags(options, 'Options');
@@ -54,125 +34,108 @@ module.exports = function(grunt) {
             return false;
         }
 
+        grunt.verbose.writeln('Loading driver ' + options.driver);
         var db = require('./lib/' + options.driver).init(grunt, options);
         if (!db.connect()) {
             return false;
         }
 
-        grunt.log.subhead('test');
-        grunt.log.writeln('test');
+        var files = fileUtils.filesToProcess(this.filesSrc);
+        if (options.pretend) {
+            grunt.log.subhead('Schema Update, Would Update:');
+            
+            files.map(function(entry) {
+                grunt.log.writeln(fileUtils.formatEntry(entry));
+            });
+        } else {
+            grunt.log.subhead('Schema Update, Updating:');
+
+            files.map(function(entry) {
+                grunt.log.writeln(fileUtils.formatEntry(entry));
+            });
+        }
 
         grunt.log.ok();
 
-        var files = filesToProcess(this.filesSrc);
+        /*
+              grunt.log.writeln('Updating DB.');
 
-        // Iterate over all specified file groups.
-//    this.files.forEach(function(f) {
-//        console.log(f.src);
-//      // Concat specified files.
-//      var src = f.src.filter(function(filepath) {
-//        // Warn on and remove invalid source files (if nonull was set).
-//        if (!grunt.file.exists(filepath)) {
-//          grunt.log.warn('Source file "' + filepath + '" not found.');
-//          return false;
-//        } else {
-//          return true;
-//        }
-//      }).map(function(filepath) {
-//        // Read file source.
-//        return grunt.file.read(filepath);
-//      }).join(grunt.util.normalizelf(','));
-//
-//      // Handle options.
-//      src += options.punctuation;
-//
-//      // Write the destination file.
-//      grunt.file.write(f.dest, src);
-//
-//      // Print a success message.
-//      grunt.log.writeln('File "' + f.dest + '" created.');
-//    });
+              // Default and user-supplied options
+              var options = this.options({
+                                         });
+
+              console.log(options );
+
+              switch (options.driver) {
+                  case 'mysql':
+                      var mysql = require('mysql'),
+                          connection = mysql.createConnection({
+                                                                  host: options.host,
+                                                                  user: options.user,
+                                                                  password: options.pass
+                                                              }),
+                          currentVersion = 0;
+
+                      if (!connection) {
+                          grunt.fatal('Unable to connect to database server.');
+                          return false;
+                      }
+
+                      connection.connect(function(err) {
+                          grunt.fatal('Unable to connect to database server: ');
+                          console.log(err);
+                          return false;
+                      });
+
+                      if (!connection) {
+                          grunt.fatal('Unable to connect to database server.');
+                          return false;
+                      }
+
+                      connection.query(options.versionQuery, function(err, rows, fields) {
+                          if (err) throw err;
+
+                          grunt.log.ok('Current DB version: ', rows[0].version);
+                      });
 
 
-/*
-      grunt.log.writeln('Updating DB.');
 
-      // Default and user-supplied options
-      var options = this.options({
-                                 });
+                      connection.end();
 
-      console.log(options );
+                      break;
 
-      switch (options.driver) {
-          case 'mysql':
-              var mysql = require('mysql'),
-                  connection = mysql.createConnection({
-                                                          host: options.host,
-                                                          user: options.user,
-                                                          password: options.pass
-                                                      }),
-                  currentVersion = 0;
-
-              if (!connection) {
-                  grunt.fatal('Unable to connect to database server.');
-                  return false;
+                  default:
+                      grunt.fatal('Invalid database driver. Supported drivers: mysql');
+                      return false;
               }
 
-              connection.connect(function(err) {
-                  grunt.fatal('Unable to connect to database server: ');
-                  console.log(err);
-                  return false;
-              });
+              //                    if (!grunt.file.exists(options.log)) {
+              //                    var result = grunt.file.read(options.log);
+              //                var done = this.async();
 
-              if (!connection) {
-                  grunt.fatal('Unable to connect to database server.');
-                  return false;
-              }
+              //                grunt.verbose.writeln('git ' + args.join(' '));
 
-              connection.query(options.versionQuery, function(err, rows, fields) {
-                  if (err) throw err;
-
-                  grunt.log.ok('Current DB version: ', rows[0].version);
-              });
-
-
-
-              connection.end();
-
-              break;
-
-          default:
-              grunt.fatal('Invalid database driver. Supported drivers: mysql');
-              return false;
-      }
-
-      //                    if (!grunt.file.exists(options.log)) {
-      //                    var result = grunt.file.read(options.log);
-      //                var done = this.async();
-
-      //                grunt.verbose.writeln('git ' + args.join(' '));
-
-      // Run the git log command and parse the result.
-      //                grunt.util.spawn(
-      //                    {
-      //                        cmd: 'git',
-      //                        args: args
-      //                    },
-      //
-      //                    function (error, result) {
-      //                        if (error) {
-      //                            grunt.log.error(error);
-      //                            return done(false);
-      //                        }
-      //
-      //                        var changelog = getChangelog(result);
-      //
-      //                        writeChangelog(changelog);
-      //
-      //                        done();
-      //                    }
-      //                );
-*/
+              // Run the git log command and parse the result.
+              //                grunt.util.spawn(
+              //                    {
+              //                        cmd: 'git',
+              //                        args: args
+              //                    },
+              //
+              //                    function (error, result) {
+              //                        if (error) {
+              //                            grunt.log.error(error);
+              //                            return done(false);
+              //                        }
+              //
+              //                        var changelog = getChangelog(result);
+              //
+              //                        writeChangelog(changelog);
+              //
+              //                        done();
+              //                    }
+              //                );
+        */
 
         return true;
     });

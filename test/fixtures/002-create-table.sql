@@ -1,4 +1,4 @@
---- v002: Create a test table
+-- Create a test table
 
 -- The user table holds basic information about each user of the system
 CREATE TABLE test (

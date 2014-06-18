@@ -31,7 +31,9 @@ module.exports = function(grunt) {
     // Configuration to be run (and then tested).
     schema_update: {
       default_options: {
-        options: {},
+        options: {
+            driver: 'simulation'
+        },
         files: 'test/fixtures/**.sql'
       },
       custom_options: {
