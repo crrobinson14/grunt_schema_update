@@ -13,7 +13,11 @@ var fileUtils = require('./lib/files');
 module.exports = function(grunt) {
     grunt.registerMultiTask('schema_update', 'Database schema update utility.', function() {
         // Merge task-specific and/or target-specific options with these defaults.
-        var drivers = ['simulation', 'mysql'],
+        var currentVersion = 0,
+            success = true,
+            drivers = ['simulation', 'mysql'],
+            filesToProcess,
+            db = null,
             options = this.options({
                 driver: 'simulation',
                 connection: {
@@ -36,28 +40,26 @@ module.exports = function(grunt) {
         }
 
         grunt.verbose.writeln('Loading driver ' + options.driver);
-        var db = require('./lib/' + options.driver).init(grunt, options);
+        db = require('./lib/' + options.driver).init(grunt, options);
         if (!db.connect()) {
             return false;
         }
 
-        var currentVersion = db.getVersion(),
-            success = true;
+        currentVersion = db.getVersion();
 
         grunt.log.writeln('Found version ' + currentVersion);
 
-        var files = fileUtils.filesToProcess(this.filesSrc, currentVersion);
+        filesToProcess = fileUtils.filesToProcess(this.filesSrc, currentVersion);
         if (options.pretend) {
             grunt.log.subhead('Would update:');
-            files.map(function(entry) {
+            filesToProcess.map(function(entry) {
                 grunt.log.writeln(fileUtils.formatEntry(entry));
             });
         } else {
             grunt.log.subhead('Updating:');
-            files.map(function(entry) {
+            filesToProcess.map(function(entry) {
                 if (success) {
                     grunt.log.writeln(fileUtils.formatEntry(entry));
-                    console.log(entry);
                     success = db.processUpdate(entry.version, entry.filename);
 
                     if (success) {

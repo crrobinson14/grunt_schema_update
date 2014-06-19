@@ -25,14 +25,14 @@ module.exports = function(grunt) {
         schema_update: {
             default_options: {
                 options: {},
-                files: 'test/fixtures/**.sql'
+                src: 'test/fixtures/**.sql'
             },
             custom_options: {
                 options: {
                     useTransaction: false,
                     pretend: false
                 },
-                files: 'test/fixtures/**.sql'
+                src: 'test/fixtures/**.sql'
             }
         },
 
