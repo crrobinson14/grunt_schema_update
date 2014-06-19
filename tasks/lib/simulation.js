@@ -8,43 +8,56 @@
 
 'use strict';
 
+var Q = require('q');
+
 exports.init = function(grunt, options) {
     var exports = {},
         currentVersion = 1;
 
     /**
      * Connect to the server.
-     * @returns {boolean} true if the connection was successful
+     * @returns {Promise} A promise that will be resolved/rejected when the connection succeeds
      */
     exports.connect = function() {
+        var deferred = Q.defer();
+
         grunt.log.writeln('FakeMySQL: Simulating connection...');
-        return true;
+        deferred.resolve();
+
+        return deferred.promise;
     };
 
     /**
      * Get the current version number from the server.
-     * @returns {Number} The current version number
+     * @returns {Promise} A promise that will be resolved with the version number once it is obtained
      */
     exports.getVersion = function() {
-        grunt.log.writeln('FakeMySQL: Simulating version 1...');
+        var deferred = Q.defer();
 
-        return currentVersion;
+        grunt.log.writeln('FakeMySQL: Simulating version 1...');
+        deferred.resolve(1);
+
+        return deferred.promise;
     };
 
     /**
      * Process an update script, then set the version number in the database.
      * @param {Number} version - the version this update will establish
      * @params {Number} file - The file containing the update
-     * @returns {boolean} true if the update was successful
+     * @returns {Promise} A promise that will be resolved/rejected when the update completes
      */
     exports.processUpdate = function(version, filename) {
+        var deferred = Q.defer();
+
         grunt.verbose.writeln('FakeMySQL: Simulating update to version ' + version +
                           ' from ' + filename + (options.useTransaction
                               ? ', use transaction...'
                               : ', no transaction...'));
 
         currentVersion = version;
-        return true;
+        deferred.resolve(version);
+
+        return deferred.promise;
     };
 
     return exports;
