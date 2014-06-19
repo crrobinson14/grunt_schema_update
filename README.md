@@ -1,16 +1,14 @@
-# grunt-schema-update
+# Grunt Schema Updater
 
 > Database schema update utility for grunt-based builds and deployments
 
-Not everybody has switched to Redis or document-based databases like MongoDB. For those using MySQL or other traditional
-databases, a common need is to update the schema, but in a safe, version-controlled way. SQL update scripts are ideal
-because they can be tracked through Git, SVN, or Mercurial... but how can you run exactly those that are required on
-every system (Dev, QA, and Production) that requires each update?
+Schema-less databases are great, but not for every situation... and if you're still using MySQL, PostgreSQL, or another
+traditional SQL database, keeping schemas in sync between development, QA, and production environments is still a
+challenge.
 
-This tool will scan a folder for update scripts that match a certain filename pattern. Files are read in sorted order,
-and the tool is smart enough to run the updates in the correct order. Each filename should contain a version number
-followed by any punctuation as a separator. The rest of the filename is ignored, and may be used to describe its
-contents. For example, you might make a folder with the following files:
+SQL update scripts are ideal because they can be tracked through Git, SVN, or Mercurial. All you need is a tool to make
+sure the updates are performed consistently among all systems. Grunt Schema Updater is that tool. This plugin scans a
+folder for SQL scripts that match a given filename pattern, for example:
 
 ```shell
 000-init.sql
@@ -18,8 +16,7 @@ contents. For example, you might make a folder with the following files:
 002-groups-table.sql
 ```
 
-These will be run in the order listed above. Because the versions are sorted numerically, if you ever "roll over" from
-999 to 1000, this module will still function as expected.
+Updates are processed in order, in transactions, and failures/retries are handled gracefully. 
 
 Because this is a multiTask, you can register several entries and maintain multiple schemas from one tool!
 
@@ -117,6 +114,10 @@ update script import, so if five updates are executed but the fifth call fails, 
 fourth (last successful) update. This helps prevent duplicate updates -- after a failed update, you can fix only the
 failing script and try again safely.
 
+Note that some drivers support things like parameter binding... but we don't use this because they don't all work the
+same way. Since this is such a simple query, a simple string-replace operation lets us support more database drivers
+more easily.
+
 #### options.queryVersionSafe
 Type: `Boolean`
 Default value: `true`
@@ -134,29 +135,31 @@ In this example, the default options are used to do something with whatever. So 
 `Testing` and the `123` file had the content `1 2 3`, the generated result would be `Testing, 1 2 3.`
 
 ```js
+
+
 grunt.initConfig({
-  schema_update: {
-    options: {
-    },
-    all: {
-      files: [],
-      driver: 'mysql',
-      connection: {
-        host: 'localhost',
-        user: 'root',
-        password: ''
-      },
-      queryGetVersion: 'SELECT version FROM schema_version',
-      querySetVersion: 'REPLACE INTO schema_version (version) VALUES ({version})',
-      queryVersionSafe: true
-    },
-  },
+    schema_update:
+        options: {
+            driver: 'simulation',
+            connection: {
+                host: 'localhost',
+                user: '',
+                pass: '',
+                multipleStatements: true
+            },
+            queryGetVersion: 'SELECT version FROM schema_version',
+            querySetVersion: 'REPLACE INTO schema_version (version) VALUES ({version})',
+            queryVersionSafe: true,
+            pretend: true
+        },
+        src: 'schema/**.sql'
+    }
 });
 ```
 
 ## Contributing
 In lieu of a formal styleguide, take care to maintain the existing coding style. Add unit tests for any new or changed
- functionality. Lint and test your code using [Grunt](http://gruntjs.com/).
+functionality. Lint and test your code using [Grunt](http://gruntjs.com/).
 
 ## Release History
 

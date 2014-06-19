@@ -24,10 +24,11 @@ module.exports = function(grunt) {
                     host: 'localhost',
                     user: '',
                     pass: '',
+                    database: 'test',
                     multipleStatements: true
                 },
                 queryGetVersion: 'SELECT version FROM schema_version',
-                querySetVersion: 'REPLACE INTO schema_version (version) VALUES ({version})',
+                querySetVersion: 'UPDATE schema_version SET version={version}',
                 queryVersionSafe: true,
                 pretend: true
             });
@@ -48,7 +49,6 @@ module.exports = function(grunt) {
 
             currentVersion = version;
 
-            grunt.log.writeln('Found version ' + currentVersion);
             grunt.log.subhead((options.pretend) ? 'Would update:' : 'Updating:');
 
             fileUtils.filesToProcess(self.filesSrc, currentVersion).map(function(entry) {
@@ -78,6 +78,7 @@ module.exports = function(grunt) {
             grunt.log.ok('Final version: ' + currentVersion);
         }).catch(function() {
             grunt.log.error('Update failed.');
+        }).finally(function() {
             done();
         });
     });

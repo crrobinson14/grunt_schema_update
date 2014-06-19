@@ -35,6 +35,12 @@ exports.init = function(grunt, options) {
     exports.getVersion = function() {
         var deferred = Q.defer();
 
+        // TODO: Should this aspect be refactored into the base plugin?
+        if (grunt.option('reload-schema')) {
+            grunt.log.subhead('FakeMySQL: Force reload schema');
+            deferred.resolve(0);
+        }
+
         grunt.log.writeln('FakeMySQL: Simulating version 1...');
         deferred.resolve(1);
 

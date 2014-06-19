@@ -21,21 +21,22 @@ exports.init = function(grunt, options) {
      * @returns {promise} A promise that will be resolved/rejected when the connection succeeds
      */
     exports.connect = function() {
+        var deferred = Q.defer();
+
         grunt.log.writeln('MySQL: Connecting to server...');
         connection = mysql.createConnection(options.connection);
         connection.connect(function(err) {
-            grunt.fatal('Unable to connect to database server: ');
-            console.log(err);
-            return false;
+            if (err) {
+                grunt.fatal('Unable to connect to database server: ', err);
+
+                deferred.reject();
+                return;
+            }
+
+            deferred.resolve();
         });
 
-        if (!connection) {
-            grunt.fatal('Unable to connect to database server.');
-            return false;
-        }
-
-        grunt.log.ok('Current DB version: ');
-        return true;
+        return deferred.promise;
     };
 
     /**
@@ -45,16 +46,22 @@ exports.init = function(grunt, options) {
     exports.getVersion = function() {
         var deferred = Q.defer();
 
-        grunt.log.writeln('MySQL: Getting current version...');
+        // TODO: Should this aspect be refactored into the base plugin?
+        if (grunt.option('reload-schema')) {
+            grunt.log.subhead('MySQL: Force reload schema');
+            deferred.resolve(0);
+        } else {
+            connection.query(options.queryGetVersion, function(err, rows) {
+                if (err) {
+                    grunt.log.error(err.message);
+                    deferred.reject();
+                    return;
+                }
 
-        connection.query(options.queryGetVersion, function(err, rows) {
-            if (err) {
-                grunt.log.writeln(err.code);
-                deferred.reject();
-            }
-
-            deferred.resolve(rows[0].version);
-        });
+                grunt.log.writeln('MySQL: Found version ' + rows[0].version);
+                deferred.resolve(rows[0].version);
+            });
+        }
 
         return deferred.promise;
     };
@@ -65,36 +72,29 @@ exports.init = function(grunt, options) {
      * @returns {promise} A promise that will be resolved/rejected when the update completes
      */
     exports.processUpdate = function(entry) {
-        var deferred = Q.defer();
+        var deferred = Q.defer(),
+            content = fs.readFileSync(entry.filename, 'utf8');
 
-        grunt.verbose.writeln('MySQL: Simulating update to version ' + entry.version + ' from ' + entry.filename);
-
-        var content = fs.readFileSync(entry.filename, 'utf8');
+        grunt.verbose.writeln('MySQL: Updating to version ' + entry.version + ' from ' + entry.filename);
 
         // TODO: Chain promises?
-        connection.beginTransaction(function(err) {
+        // NOTE: We used to start a transaction here, but since most schema updates execute commands that perform an
+        // implicit commit...
+        connection.query(content, function(err) {
             if (err) {
-                grunt.log.error(err);
+                grunt.fatal(err.message);
                 deferred.reject();
                 return;
             }
 
-            connection.query(content, function(err) {
+            connection.query(options.querySetVersion.replace('{version}', entry.version), function(err) {
                 if (err) {
-                    connection.rollback();
+                    grunt.fatal(err.message);
                     deferred.reject();
                     return;
                 }
 
-                connection.commit(function(err) {
-                    if (err) {
-                        connection.rollback();
-                        deferred.reject();
-                        return;
-                    }
-
-                    deferred.resolve(entry.version);
-                });
+                deferred.resolve(entry.version);
             });
         });
 

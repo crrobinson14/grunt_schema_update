@@ -1,4 +1,4 @@
--- Test a failing update query
+-- Test a failing update query. To see what will happen, rename this file to have an extension of .sql.
 
 -- This query isn't legit, so it will throw an error. The table should already exist.
 CREATE TABLE test (

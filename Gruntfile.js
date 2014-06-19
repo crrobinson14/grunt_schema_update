@@ -28,8 +28,19 @@ module.exports = function(grunt) {
                 src: 'test/fixtures/**.sql'
             },
             custom_options: {
+//                options: {
+//                    useTransaction: false,
+//                    pretend: false
+//                },
                 options: {
-                    useTransaction: false,
+                    driver: 'mysql',
+                        connection: {
+                        host: 'localhost',
+                            user: 'root',
+                            pass: '',
+                            database: 'gstest',
+                            multipleStatements: true
+                    },
                     pretend: false
                 },
                 src: 'test/fixtures/**.sql'
