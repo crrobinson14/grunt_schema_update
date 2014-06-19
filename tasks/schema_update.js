@@ -1,9 +1,9 @@
-/**
+/*
  * grunt-schema-update
  * https://github.com/crrobinson14/grunt_schema_update
  *
  * Copyright (c) 2014 Chad Robinson
- * Licensed under the MIT license.
+ * Licensed under the MIT license. See LICENSE-MIT.
  */
 
 'use strict';
@@ -41,26 +41,37 @@ module.exports = function(grunt) {
             return false;
         }
 
-        var currentVersion = db.getVersion();
+        var currentVersion = db.getVersion(),
+            success = true;
+
         grunt.log.writeln('Found version ' + currentVersion);
 
         var files = fileUtils.filesToProcess(this.filesSrc, currentVersion);
         if (options.pretend) {
             grunt.log.subhead('Would update:');
-
             files.map(function(entry) {
                 grunt.log.writeln(fileUtils.formatEntry(entry));
             });
         } else {
             grunt.log.subhead('Updating:');
-
             files.map(function(entry) {
-                grunt.log.writeln(fileUtils.formatEntry(entry));
-                db.processUpdate(entry.version, entry.filename);
+                if (success) {
+                    grunt.log.writeln(fileUtils.formatEntry(entry));
+                    console.log(entry);
+                    success = db.processUpdate(entry.version, entry.filename);
+
+                    if (success) {
+                        currentVersion = entry.version;
+                    }
+                }
             });
         }
 
-        grunt.log.ok();
+        if (success) {
+            grunt.log.ok('Final version: ' + currentVersion);
+        } else {
+            grunt.log.error('Update failed.');
+        }
 
         /*
               grunt.log.writeln('Updating DB.');
@@ -142,6 +153,6 @@ module.exports = function(grunt) {
               //                );
         */
 
-        return true;
+        return success;
     });
 };

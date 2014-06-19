@@ -3,14 +3,12 @@
  * https://github.com/crrobinson14/grunt_schema_update
  *
  * Copyright (c) 2014 Chad Robinson
- * Licensed under the MIT license.
+ * Licensed under the MIT license. See LICENSE-MIT.
  */
 
 'use strict';
 
 module.exports = function(grunt) {
-
-    // Project configuration.
     grunt.initConfig({
         jshint: {
             all: [

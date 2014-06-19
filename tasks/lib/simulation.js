@@ -1,5 +1,9 @@
-/**
- * @file Fake MySQL driver for CI testing
+/*
+ * grunt-schema-update
+ * https://github.com/crrobinson14/grunt_schema_update
+ *
+ * Copyright (c) 2014 Chad Robinson
+ * Licensed under the MIT license. See LICENSE-MIT.
  */
 
 'use strict';
