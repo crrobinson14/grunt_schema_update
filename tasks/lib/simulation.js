@@ -1,37 +1,45 @@
 /**
- * grunt-schema-update
- * https://github.com/crrobinson14/grunt_schema_update
- *
- * Copyright (c) 2014 Chad Robinson
- * Licensed under the MIT license.
+ * @file Fake MySQL driver for CI testing
  */
 
 'use strict';
 
 exports.init = function(grunt, options) {
     var exports = {},
-        connection,
-        mysql = require('mysql'),
-        currentVersion = 0;
+        currentVersion = 1;
 
     /**
-     * Connect to the MySQL server.
+     * Connect to the server.
      * @returns {boolean} true if the connection was successful
      */
     exports.connect = function() {
-        connection = mysql.createConnection(options.connection);
-        connection.connect(function(err) {
-            grunt.fatal('Unable to connect to database server: ');
-            console.log(err);
-            return false;
-        });
+        grunt.log.writeln('FakeMySQL: Simulating connection...');
+        return true;
+    };
 
-        if (!connection) {
-            grunt.fatal('Unable to connect to database server.');
-            return false;
-        }
+    /**
+     * Get the current version number from the server.
+     * @returns {Number} The current version number
+     */
+    exports.getVersion = function() {
+        grunt.log.writeln('FakeMySQL: Simulating version 1...');
 
-        grunt.log.ok('Current DB version: ');
+        return currentVersion;
+    };
+
+    /**
+     * Process an update script, then set the version number in the database.
+     * @param {Number} version - the version this update will establish
+     * @params {Number} file - The file containing the update
+     * @returns {boolean} true if the update was successful
+     */
+    exports.processUpdate = function(version, filename) {
+        grunt.verbose.writeln('FakeMySQL: Simulating update to version ' + version +
+                          ' from ' + filename + (options.useTransaction
+                              ? ', use transaction...'
+                              : ', no transaction...'));
+
+        currentVersion = version;
         return true;
     };
 

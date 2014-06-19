@@ -15,7 +15,7 @@ module.exports = function(grunt) {
         // Merge task-specific and/or target-specific options with these defaults.
         var drivers = ['simulation', 'mysql'],
             options = this.options({
-                driver: 'mysql',
+                driver: 'simulation',
                 connection: {
                     host: 'localhost',
                     user: '',
@@ -24,6 +24,7 @@ module.exports = function(grunt) {
                 queryGetVersion: 'SELECT version FROM schema_version',
                 querySetVersion: 'REPLACE INTO schema_version (version) VALUES ({version})',
                 queryVersionSafe: true,
+                useTransaction: true,
                 pretend: true
             });
 
@@ -40,18 +41,22 @@ module.exports = function(grunt) {
             return false;
         }
 
-        var files = fileUtils.filesToProcess(this.filesSrc);
+        var currentVersion = db.getVersion();
+        grunt.log.writeln('Found version ' + currentVersion);
+
+        var files = fileUtils.filesToProcess(this.filesSrc, currentVersion);
         if (options.pretend) {
-            grunt.log.subhead('Schema Update, Would Update:');
-            
+            grunt.log.subhead('Would update:');
+
             files.map(function(entry) {
                 grunt.log.writeln(fileUtils.formatEntry(entry));
             });
         } else {
-            grunt.log.subhead('Schema Update, Updating:');
+            grunt.log.subhead('Updating:');
 
             files.map(function(entry) {
                 grunt.log.writeln(fileUtils.formatEntry(entry));
+                db.processUpdate(entry.version, entry.filename);
             });
         }
 
