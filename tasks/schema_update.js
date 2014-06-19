@@ -13,29 +13,26 @@ var fileUtils = require('./lib/files'),
 
 module.exports = function(grunt) {
     grunt.registerMultiTask('schema_update', 'Database schema update utility.', function() {
-        var success = true,
-            drivers = ['simulation', 'mysql'],
+        var drivers = ['simulation', 'mysql'],
             db = null,
             currentVersion = 0,
             done = this.async(),
             self = this,
-            // Merge task-specific and/or target-specific options with these defaults.
             options = this.options({
                 driver: 'simulation',
                 connection: {
                     host: 'localhost',
                     user: '',
-                    pass: ''
+                    pass: '',
+                    multipleStatements: true
                 },
                 queryGetVersion: 'SELECT version FROM schema_version',
                 querySetVersion: 'REPLACE INTO schema_version (version) VALUES ({version})',
                 queryVersionSafe: true,
-                useTransaction: true,
                 pretend: true
             });
 
         grunt.verbose.writeflags(options, 'Options');
-
         if (drivers.indexOf(options.driver) === -1) {
             grunt.log.error('Invalid driver. Supported values: ', grunt.log.wordlist(drivers));
             return false;
@@ -44,8 +41,6 @@ module.exports = function(grunt) {
         grunt.verbose.writeln('Loading driver ' + options.driver);
         db = require('./lib/' + options.driver).init(grunt, options);
 
-        // TODO: We could avoid callback-hell here with Q cleverness, but it's not really a big deal and this is
-        // easier to debug...
         db.connect().then(function() {
             return db.getVersion();
         }).then(function(version) {
@@ -65,8 +60,7 @@ module.exports = function(grunt) {
                     if (options.pretend) {
                         deferred.resolve();
                     } else {
-                        db.processUpdate(entry, function(result) {
-                            console.log('Done processing', result);
+                        db.processUpdate(entry).then(function(result) {
                             currentVersion = entry.version;
                             deferred.resolve(result);
                         });
@@ -86,7 +80,5 @@ module.exports = function(grunt) {
             grunt.log.error('Update failed.');
             done();
         });
-
-        return success;
     });
 };

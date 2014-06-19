@@ -33,7 +33,8 @@
     "grunt": "~0.4.5",
     "mysql": "^2.3.2",
     "wrench": "^1.5.8",
-    "q": "^1.0.1"
+    "q": "^1.0.1",
+    "node-mysql-transaction": "^0.1.0"
   },
   "peerDependencies": {
     "grunt": "~0.4.5"

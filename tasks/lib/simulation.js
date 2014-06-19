@@ -8,7 +8,8 @@
 
 'use strict';
 
-var Q = require('q');
+var Q = require('q'),
+    fs = require('fs');
 
 exports.init = function(grunt, options) {
     var exports = {},
@@ -16,7 +17,7 @@ exports.init = function(grunt, options) {
 
     /**
      * Connect to the server.
-     * @returns {Promise} A promise that will be resolved/rejected when the connection succeeds
+     * @returns {promise} A promise that will be resolved/rejected when the connection succeeds
      */
     exports.connect = function() {
         var deferred = Q.defer();
@@ -29,7 +30,7 @@ exports.init = function(grunt, options) {
 
     /**
      * Get the current version number from the server.
-     * @returns {Promise} A promise that will be resolved with the version number once it is obtained
+     * @returns {promise} A promise that will be resolved with the version number once it is obtained
      */
     exports.getVersion = function() {
         var deferred = Q.defer();
@@ -42,20 +43,19 @@ exports.init = function(grunt, options) {
 
     /**
      * Process an update script, then set the version number in the database.
-     * @param {Number} version - the version this update will establish
-     * @params {Number} file - The file containing the update
-     * @returns {Promise} A promise that will be resolved/rejected when the update completes
+     * @param {Object} entry - The entry to process
+     * @returns {promise} A promise that will be resolved/rejected when the update completes
      */
-    exports.processUpdate = function(version, filename) {
+    exports.processUpdate = function(entry) {
         var deferred = Q.defer();
 
-        grunt.verbose.writeln('FakeMySQL: Simulating update to version ' + version +
-                          ' from ' + filename + (options.useTransaction
-                              ? ', use transaction...'
-                              : ', no transaction...'));
+        grunt.verbose.writeln('FakeMySQL: Simulating update to version ' + entry.version + ' from ' + entry.filename);
 
-        currentVersion = version;
-        deferred.resolve(version);
+        // We don't really need this, we're just proving that the file is readable
+        var content = fs.readFileSync(entry.filename, 'utf8');
+
+        currentVersion = entry.version;
+        deferred.resolve(entry.version);
 
         return deferred.promise;
     };

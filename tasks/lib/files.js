@@ -44,25 +44,30 @@ function FileUtils() {
     /**
      * Get a list of files to process.
      */
-    this.filesToProcess = function(src) {
+    this.filesToProcess = function(src, currentVersion) {
         var files = [];
 
         // For each file, get its version (we ignore files that don't start with
         // numbers) and optional comment
         src.map(function(entry) {
             var base = path.basename(entry),
-                parts = base.match(/^([0-9]+)/gi);
+                parts = base.match(/^([0-9]+)/gi),
+                version;
 
             if (!parts || parts.length !== 1) {
                 return;
             }
 
-            files.push({
-                filename: entry,
-                base: base,
-                version: (parts && parts.length === 1) ? +parts[0] : 999999999,
-                comment: self.firstLine(entry)
-            });
+            version = (parts && parts.length === 1) ? +parts[0] : 999999999;
+
+            if (version > currentVersion) {
+                files.push({
+                    filename: entry,
+                    base: base,
+                    version: version,
+                    comment: self.firstLine(entry)
+                });
+            }
         });
 
         return files.sort(function(a, b) {

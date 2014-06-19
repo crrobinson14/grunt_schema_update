@@ -8,7 +8,8 @@
 
 'use strict';
 
-var Q = require('q');
+var Q = require('q'),
+    fs = require('fs');
 
 exports.init = function(grunt, options) {
     var exports = {},
@@ -17,7 +18,7 @@ exports.init = function(grunt, options) {
 
     /**
      * Connect to the server.
-     * @returns {Promise} A promise that will be resolved/rejected when the connection succeeds
+     * @returns {promise} A promise that will be resolved/rejected when the connection succeeds
      */
     exports.connect = function() {
         grunt.log.writeln('MySQL: Connecting to server...');
@@ -39,32 +40,65 @@ exports.init = function(grunt, options) {
 
     /**
      * Get the current version number from the server.
-     * @returns {Promise} A promise that will be resolved with the version number once it is obtained
+     * @returns {promise} A promise that will be resolved with the version number once it is obtained
      */
     exports.getVersion = function() {
+        var deferred = Q.defer();
+
         grunt.log.writeln('MySQL: Getting current version...');
 
-        connection.query('SELECT 1', function(err, rows) {
-            // connected! (unless `err` is set)
+        connection.query(options.queryGetVersion, function(err, rows) {
+            if (err) {
+                grunt.log.writeln(err.code);
+                deferred.reject();
+            }
+
+            deferred.resolve(rows[0].version);
         });
 
-        return currentVersion;
+        return deferred.promise;
     };
 
     /**
      * Process an update script, then set the version number in the database.
-     * @param {Number} version - the version this update will establish
-     * @params {Number} file - The file containing the update
-     * @returns {Promise} A promise that will be resolved/rejected when the update completes
+     * @param {Object} entry - The entry to process
+     * @returns {promise} A promise that will be resolved/rejected when the update completes
      */
-    exports.processUpdate = function(version, filename) {
-        grunt.verbose.writeln('MySQL: Simulating update to version ' + version +
-                              ' from ' + filename + (options.useTransaction
-            ? ', use transaction...'
-            : ', no transaction...'));
+    exports.processUpdate = function(entry) {
+        var deferred = Q.defer();
 
-        currentVersion = version;
-        return true;
+        grunt.verbose.writeln('MySQL: Simulating update to version ' + entry.version + ' from ' + entry.filename);
+
+        var content = fs.readFileSync(entry.filename, 'utf8');
+
+        // TODO: Chain promises?
+        connection.beginTransaction(function(err) {
+            if (err) {
+                grunt.log.error(err);
+                deferred.reject();
+                return;
+            }
+
+            connection.query(content, function(err) {
+                if (err) {
+                    connection.rollback();
+                    deferred.reject();
+                    return;
+                }
+
+                connection.commit(function(err) {
+                    if (err) {
+                        connection.rollback();
+                        deferred.reject();
+                        return;
+                    }
+
+                    deferred.resolve(entry.version);
+                });
+            });
+        });
+
+        return deferred.promise;
     };
 
     return exports;
