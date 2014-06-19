@@ -28,9 +28,7 @@ module.exports = function(grunt) {
                     multipleStatements: true
                 },
                 queryGetVersion: 'SELECT version FROM schema_version',
-                querySetVersion: 'UPDATE schema_version SET version={version}',
-                queryVersionSafe: true,
-                pretend: true
+                querySetVersion: 'UPDATE schema_version SET version={version}'
             });
 
         grunt.verbose.writeflags(options, 'Options');
@@ -49,7 +47,7 @@ module.exports = function(grunt) {
 
             currentVersion = version;
 
-            grunt.log.subhead((options.pretend) ? 'Would update:' : 'Updating:');
+            grunt.log.subhead(grunt.option('pretend') ? 'Would update:' : 'Updating:');
 
             fileUtils.filesToProcess(self.filesSrc, currentVersion).map(function(entry) {
                 var promise_link = function() {
@@ -57,7 +55,7 @@ module.exports = function(grunt) {
 
                     grunt.log.writeln(fileUtils.formatEntry(entry));
 
-                    if (options.pretend) {
+                    if (grunt.option('pretend')) {
                         deferred.resolve();
                     } else {
                         db.processUpdate(entry).then(function(result) {

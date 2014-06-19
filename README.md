@@ -62,21 +62,21 @@ grunt.initConfig({
 Type: `String`
 Default value: `'mysql'`
 
-The type of database to connect to. Currently, only MySQL is supported, but this tool has been designed to handle
-additional database types in the future. (Pull requests welcome!)
+The type of database to connect to. Currently, only `'simulation'` and `'mysql'` are supported, but since the database
+layer is modular, it would be easy to add more. (Pull requests welcome!)
 
-#### options.files
+#### options.src
 Type: `String`
 Default value: `'mysql'`
 
-The type of database to connect to. Currently, only MySQL is supported, but this tool has been designed to handle
-additional database types in the future. (Pull requests welcome!)
+The files to process. Standard Grunt files syntax is accepted (wildcards, arrays, etc.)
 
 #### options.connection
 Type: `Object`
 Default value: `{}`
 
-One or more options to be passed to the database connection call. For example, for MySQL you might use:
+A database connection configuration block. This is passed as-is to the database layer, so you can include any options
+that layer supports. For example, for MySQL you might use:
 
 ```js
     ...
@@ -86,37 +86,33 @@ One or more options to be passed to the database connection call. For example, f
         connection: {
             host: 'localhost',
             user: 'root',
-            password: 'mypass'
+            pass: '',
+            database: 'test',
+            multipleStatements: true
         }
         ...
     },
     ...
 ```
 
-These options will be passed through as-is to the `createConnection()` (or similar) call, so you may include any
-options supported by the driver's module. For example, all of the node-mysql options are supported as described
-in the [node-mysql project on Github](http://gruntjs.com/).
-
 #### options.queryGetVersion
 Type: `String`
 Default value: `SELECT version FROM schema_version`
 
 A query to execute to obtain the current database schema version number. If the connection succeeds but this call
-fails, the assumption about the current version is controlled by the `queryVersionSafe` option described below.
+fails, this is assumed to be an error condition unless the 'reload-schema' command line option was also included.
 
 #### options.querySetVersion
 Type: `String`
-Default value: `REPLACE INTO schema_version (version) VALUES ({version})`
+Default value: `UPDATE schema_version SET version={version}`
 
-A query to execute to update the current database version number. The token `{version}` will be replaced with the new
-version from the last successful file import. Note that the version will be updated after each successful schema
-update script import, so if five updates are executed but the fifth call fails, the version will be the version of the
-fourth (last successful) update. This helps prevent duplicate updates -- after a failed update, you can fix only the
-failing script and try again safely.
+A query to execute to update the current schema version number. The token `{version}` will be replaced with the new
+version from the last successful file import. (We don't use prepared statements because the syntax differences between
+database drivers make it hard to provide a generic option for that.")
 
-Note that some drivers support things like parameter binding... but we don't use this because they don't all work the
-same way. Since this is such a simple query, a simple string-replace operation lets us support more database drivers
-more easily.
+Note that the version will be updated after EACH successful schema update script import. If five updates are executed
+but the fifth call fails, the version will be the version of the fourth (last successful) update. This helps prevent
+duplicate updates because you can safely re-run the command to pick up where you left off.
 
 #### options.queryVersionSafe
 Type: `Boolean`
@@ -127,24 +123,40 @@ set to `true`, the script will terminate with an error. If it is set to `false`,
 corrupt or invalid and the schema update will start from the first file in the series. This is useful for populating
 empty databases from scratch.
 
+### Command-Line Arguments
+
+In addition to the standard configuration options, this plugin also supports two command-line arguments:
+
+#### `--pretend`
+
+If you include `--pretend` when running Grunt, the list of updates that will be performed will be displayed, but not
+executed. You can also use the `simulation` driver to provide a similar effect, but this mechanism may be more useful
+for general use.
+
+#### `--reload-schema`
+
+If this parameter is included, the database version is ignored and is assumed to be 0. Updates will thus start with
+version 1 (or the first version after it, sorted numerically). Be sure this file contains enough information to
+construct the database AND the schema-version tracking table. See test/fixtures/001-init.sql for an example. This is
+useful if you want to wipe-and-reload the database schema.
+
 ### Usage Examples
 
 #### Default Options
 
-In this example, the default options are used to do something with whatever. So if the `testing` file has the content
-`Testing` and the `123` file had the content `1 2 3`, the generated result would be `Testing, 1 2 3.`
+The example configuration below will examine the `schema/` subdirectory and perform any required updates found inside
+it. It will do this against a local MySQL database, logging in as root (no password) against database `mydb`. 
 
 ```js
-
-
 grunt.initConfig({
     schema_update:
         options: {
             driver: 'simulation',
             connection: {
                 host: 'localhost',
-                user: '',
+                user: 'root',
                 pass: '',
+                database: 'mydb',
                 multipleStatements: true
             },
             queryGetVersion: 'SELECT version FROM schema_version',
