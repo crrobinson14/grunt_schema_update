@@ -34,12 +34,23 @@ module.exports = function(grunt) {
 //                },
                 options: {
                     driver: 'mysql',
-                        connection: {
+                    connection: {
                         host: 'localhost',
+                        user: 'root',
+                        pass: '',
+                        database: 'gstest',
+                        multipleStatements: true
+                    },
+                    create: {
+                        connection: {
+                            host: 'localhost',
                             user: 'root',
-                            pass: '',
-                            database: 'gstest',
-                            multipleStatements: true
+                            pass: ''
+                        },
+                        createDB: 'gstest',
+                        createUser: 'gstest',
+                        createPass: '123456',
+                        createHost: 'localhost'
                     },
                     pretend: false
                 },

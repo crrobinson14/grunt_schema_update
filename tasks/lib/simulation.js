@@ -29,6 +29,19 @@ exports.init = function(grunt, options) {
     };
 
     /**
+     * (Pretend to) create the database
+     * @returns {promise} A promise that will be resolved with the version number once it is obtained
+     */
+    exports.create = function() {
+        var deferred = Q.defer();
+
+        grunt.log.writeln('FakeMySQL: Simulating creating the database...');
+        deferred.resolve();
+
+        return deferred.promise;
+    };
+
+    /**
      * Get the current version number from the server.
      * @returns {promise} A promise that will be resolved with the version number once it is obtained
      */

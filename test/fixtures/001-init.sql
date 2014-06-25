@@ -1,14 +1,5 @@
 -- Initialize the database
 
--- Start from scratch here
-DROP DATABASE IF EXISTS gstest;
-CREATE DATABASE gstest;
-GRANT ALL ON `gstest`.* TO 'gstest'@'localhost' IDENTIFIED BY '123456';
-USE gstest;
-
--- Track our version number
-CREATE TABLE schema_version (
-  version int NOT NULL
-);
-
-INSERT INTO schema_version VALUES (0);
+-- Dummy file. Note that the creation is handled in options now. It's starting to get a little
+-- kludgy so we may tweak that section a bit, but it does make more sense for the driver to
+-- handle the creation rather than the SQL files.

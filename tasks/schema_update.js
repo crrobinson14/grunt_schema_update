@@ -24,8 +24,19 @@ module.exports = function(grunt) {
                     host: 'localhost',
                     user: '',
                     pass: '',
-                    database: 'test',
+                    database: 'gstest',
                     multipleStatements: true
+                },
+                create: {
+                    connection: {
+                        host: 'localhost',
+                        user: 'root',
+                        pass: ''
+                    },
+                    createDB: 'gstest',
+                    createUser: 'gstest',
+                    createPass: '123456',
+                    createHost: 'localhost'
                 },
                 queryGetVersion: 'SELECT version FROM schema_version',
                 querySetVersion: 'UPDATE schema_version SET version={version}'
