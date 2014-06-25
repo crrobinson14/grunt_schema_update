@@ -95,6 +95,31 @@ that layer supports. For example, for MySQL you might use:
     ...
 ```
 
+#### options.create
+Type: `Object`
+Default value:
+```js
+    create: {
+        connection: {
+            host: 'localhost',
+            user: 'root',
+            password: ''
+        },
+        createDB: 'gstest',
+        createUser: 'gstest',
+        createPass: '123456',
+        createHost: 'localhost'
+    },
+```
+
+A create-schema configuration block. Includes a 'connection' block for connecting to the server, plus options for how
+the database and user to access it should be named. Note that a separate connection is made when running this section,
+so you can include details for a privileged user account here.
+
+This block is only required if `--reload-schema` is used. You may optionally skip this block and create the database
+manually, but if you want to reload the schema you will then have to re-create it manually as well (including the
+`schema_version` table!)
+
 #### options.queryGetVersion
 Type: `String`
 Default value: `SELECT version FROM schema_version`
@@ -154,10 +179,21 @@ grunt.initConfig({
             driver: 'simulation',
             connection: {
                 host: 'localhost',
-                user: 'root',
-                pass: '',
-                database: 'mydb',
+                user: 'gstest',
+                password: '123456',
+                database: 'gstest',
                 multipleStatements: true
+            },
+            create: {
+                connection: {
+                    host: 'localhost',
+                    user: 'root',
+                    password: ''
+                },
+                createDB: 'gstest',
+                createUser: 'gstest',
+                createPass: '123456',
+                createHost: 'localhost'
             },
             queryGetVersion: 'SELECT version FROM schema_version',
             querySetVersion: 'REPLACE INTO schema_version (version) VALUES ({version})',

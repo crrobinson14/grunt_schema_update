@@ -37,7 +37,7 @@ module.exports = function(grunt) {
                     connection: {
                         host: 'localhost',
                         user: 'root',
-                        pass: '',
+                        password: '',
                         database: 'gstest',
                         multipleStatements: true
                     },
@@ -45,7 +45,7 @@ module.exports = function(grunt) {
                         connection: {
                             host: 'localhost',
                             user: 'root',
-                            pass: ''
+                            password: ''
                         },
                         createDB: 'gstest',
                         createUser: 'gstest',
